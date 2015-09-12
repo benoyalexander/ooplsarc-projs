@@ -45,6 +45,11 @@ TestSolution: Solution.h Solution.c++ TestSolution.c++ submit
 	$(CXX) $(CXXFLAGS) $(GCOVFLAGS) Solution.c++ TestSolution.c++ -o TestSolution $(LDFLAGS)
 	./TestSolution
 
+DebugTestSolution: Solution.h Solution.c++ TestSolution.c++ submit
+	$(CXX) $(CXXFLAGS) $(GCOVFLAGS) -g Solution.c++ TestSolution.c++ -o TestSolution $(LDFLAGS)
+	./TestSolution
+
+
 check: TestSolution
 	$(VALGRIND) ./TestSolution                                        >  TestSolution.tmp 2>&1
 	$(GCOV) -b Solution.c++     | grep -A 5 "File 'Solution.c++'"     >> TestSolution.tmp
