@@ -1,0 +1,603 @@
+        -:    0:Source:Solution.c++
+        -:    0:Graph:Solution.gcno
+        -:    0:Data:Solution.gcda
+        -:    0:Runs:2
+        -:    0:Programs:1
+        -:    1:// ----------------------------
+        -:    2:// projects/collatz/Collatz.c++
+        -:    3:// Copyright (C) 2015
+        -:    4:// Glenn P. Downing
+        -:    5:// ----------------------------
+        -:    6:
+        -:    7:// --------
+        -:    8:// includes
+        -:    9:// --------
+        -:   10:
+        -:   11:#include <cassert>  // assert
+        -:   12:#include <iostream> // endl, istream, ostream, cin, cout
+        -:   13:#include <sstream>  // istringstream
+        -:   14:#include <string>   // getline, string, to_string
+        -:   15:#include <queue>
+        -:   16:#include <limits>
+        -:   17:#include <algorithm>
+        -:   18:#include <bitset>
+        -:   19:
+        -:   20:#include "Solution.h"
+        -:   21:
+        -:   22:using namespace std;
+        -:   23:
+        -:   24:bool DEBUG = false;
+        -:   25:
+        -:   26:// ------------
+        -:   27:// priority queue
+        -:   28:// ------------
+        -:   29:
+function _ZN13state_elementaSEOS_ called 42 returned 100% blocks executed 100%
+function _ZN13state_elementC2EOS_ called 76 returned 100% blocks executed 100%
+function _ZN13state_elementC2ERKS_ called 66 returned 100% blocks executed 100%
+function _ZN13state_elementD2Ev called 148 returned 100% blocks executed 100%
+function _ZN13state_elementC2Ev called 6 returned 100% blocks executed 100%
+      338:   30:class state_element {
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 100%
+        -:   31:public:
+        -:   32:  friend bool operator>(const state_element& lhs,
+        -:   33:			const state_element& rhs);
+        -:   34:
+function _ZNK13state_element7displayEv called 0 returned 0% blocks executed 0%
+    #####:   35:  string display() const {
+    #####:   36:    ostringstream ret;
+call    0 never executed
+branch  1 never executed
+branch  2 never executed
+call    3 never executed
+call    4 never executed
+    #####:   37:    ret << "dist=" << distance << " path=";
+call    0 never executed
+branch  1 never executed
+branch  2 never executed
+call    3 never executed
+branch  4 never executed
+branch  5 never executed
+call    6 never executed
+branch  7 never executed
+branch  8 never executed
+        -:   38:
+    #####:   39:    for (auto& x : path) {
+call    0 never executed
+call    1 never executed
+call    2 never executed
+branch  3 never executed
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+    #####:   40:      ret << x << ",";
+call    0 never executed
+branch  1 never executed
+branch  2 never executed
+call    3 never executed
+branch  4 never executed
+branch  5 never executed
+        -:   41:    }
+        -:   42:    
+    #####:   43:    return ret.str();
+call    0 never executed
+branch  1 never executed
+branch  2 never executed
+        -:   44:  }
+        -:   45:  
+        -:   46:  int distance = 0;
+        -:   47:  vector<int> path;
+        -:   48:};
+        -:   49:
+function _ZgtRK13state_elementS1_ called 8 returned 100% blocks executed 100%
+        8:   50:bool operator>(const state_element& lhs,
+        -:   51:	       const state_element& rhs) {
+        8:   52:  return lhs.distance > rhs.distance;
+        -:   53:}
+        -:   54:
+        -:   55:
+        -:   56:// ------------
+        -:   57:// eval
+        -:   58:// ------------
+        -:   59:
+function _Z4evaliRKSt3mapIiS_IiiSt4lessIiESaISt4pairIKiiEEES1_SaIS2_IS3_S6_EEE called 12 returned 100% blocks executed 52%
+       12:   60:string eval (int verts, const TypeGraph& graph) {
+       12:   61:  if (graph.size() == 0) return "-1"; // no edges
+call    0 returned 100%
+branch  1 taken 17% (fallthrough)
+branch  2 taken 83%
+call    3 returned 100%
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+call    8 never executed
+       10:   62:  if (graph.find(verts) == graph.end() || graph.at(verts).size() == 0) return "-1"; // Can't get to last state
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 60% (fallthrough)
+branch  6 taken 40%
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0% (throw)
+call   10 returned 100%
+branch 11 taken 0% (fallthrough)
+branch 12 taken 100%
+branch 13 taken 100% (fallthrough)
+branch 14 taken 0%
+branch 15 taken 100% (fallthrough)
+branch 16 taken 0%
+branch 17 taken 40% (fallthrough)
+branch 18 taken 60%
+call   19 returned 100%
+call   20 returned 100%
+branch 21 taken 100% (fallthrough)
+branch 22 taken 0% (throw)
+call   23 returned 100%
+branch 24 never executed
+branch 25 never executed
+branch 26 never executed
+branch 27 never executed
+call   28 never executed
+        -:   63:
+        -:   64:  /*
+        -:   65:  for (auto& x : graph) {
+        -:   66:    for (auto& y : x.second) {
+        -:   67:      cout << x.first << " " << y.first << " " << y.second << endl;
+        -:   68:    }
+        -:   69:  }
+        -:   70:  */
+        -:   71:
+       12:   72:  priority_queue<state_element, std::vector<state_element>, std::greater<state_element> > paths;
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+call    6 never executed
+call    7 never executed
+        6:   73:  bitset<100000> visited;
+        -:   74:
+        -:   75:  // current shortest
+        6:   76:  int min_distance = numeric_limits<int>::max();
+call    0 returned 100%
+       12:   77:  vector<int> min_path;
+call    0 returned 100%
+call    1 returned 100%
+call    2 never executed
+        -:   78:
+        -:   79:  // initial state for pq
+       12:   80:  state_element state;
+call    0 returned 100%
+call    1 returned 100%
+call    2 never executed
+        -:   81:  //  state.visited.set(1);
+        6:   82:  state.path.push_back(1);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        6:   83:  paths.push(state);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   84:  
+       54:   85:  while (!paths.empty()) {
+call    0 returned 100%
+branch  1 taken 80% (fallthrough)
+branch  2 taken 20%
+       46:   86:    state_element state(paths.top());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 never executed
+       24:   87:    paths.pop();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+       24:   88:    if (DEBUG) cout << "Eval from state: " << state.display() << endl;
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+call    2 never executed
+branch  3 never executed
+branch  4 never executed
+call    5 never executed
+branch  6 never executed
+branch  7 never executed
+call    8 never executed
+branch  9 never executed
+branch 10 never executed
+call   11 never executed
+branch 12 never executed
+branch 13 never executed
+call   14 never executed
+call   15 never executed
+        -:   89:    
+       24:   90:    const int& curr_vert = state.path.back();
+call    0 returned 100%
+       24:   91:    const int& curr_dist = state.distance;
+        -:   92:
+       24:   93:    if (curr_dist >= min_distance) {
+branch  0 taken 8% (fallthrough)
+branch  1 taken 92%
+        2:   94:      if (DEBUG) cout << "Skip vertex: Distance=" << curr_dist << " >= min_distance" << endl;
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+call    2 never executed
+branch  3 never executed
+branch  4 never executed
+call    5 never executed
+branch  6 never executed
+branch  7 never executed
+call    8 never executed
+branch  9 never executed
+branch 10 never executed
+call   11 never executed
+branch 12 never executed
+branch 13 never executed
+        2:   95:      continue;
+        -:   96:    }
+        -:   97:
+       22:   98:    if (graph.find(curr_vert) == graph.end()) {
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+    #####:   99:      continue;
+        -:  100:    }
+        -:  101:    
+       68:  102:    for (const auto& x : graph.at(curr_vert)) {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 68% (fallthrough)
+branch  7 taken 32%
+call    8 returned 100%
+call    9 returned 100%
+call   10 returned 100%
+branch 11 taken 92%
+branch 12 taken 8%
+       46:  103:      const int& next_vert = x.first;
+       46:  104:      const int& next_dist = x.second;
+       46:  105:      const int total_dist = curr_dist + next_dist;
+       46:  106:      bool visited_next_vert = find(state.path.begin(), state.path.end(), next_vert) != state.path.end();
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+        -:  107:	
+       46:  108:      if (DEBUG) cout << "Check edge " << curr_vert << "->" << next_vert << " visited=" << visited_next_vert << " min_dist=" << min_distance << endl;
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+call    2 never executed
+branch  3 never executed
+branch  4 never executed
+call    5 never executed
+branch  6 never executed
+branch  7 never executed
+call    8 never executed
+branch  9 never executed
+branch 10 never executed
+call   11 never executed
+branch 12 never executed
+branch 13 never executed
+call   14 never executed
+branch 15 never executed
+branch 16 never executed
+call   17 never executed
+branch 18 never executed
+branch 19 never executed
+call   20 never executed
+branch 21 never executed
+branch 22 never executed
+call   23 never executed
+branch 24 never executed
+branch 25 never executed
+call   26 never executed
+branch 27 never executed
+branch 28 never executed
+        -:  109:
+       46:  110:      if (!visited_next_vert) {
+branch  0 taken 65% (fallthrough)
+branch  1 taken 35%
+       30:  111:	if (total_dist >= min_distance) {
+branch  0 taken 13% (fallthrough)
+branch  1 taken 87%
+        4:  112:	  if (DEBUG) cout << "Skip edge: Distance=" << total_dist << " >= min_distance" << endl;
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+call    2 never executed
+branch  3 never executed
+branch  4 never executed
+call    5 never executed
+branch  6 never executed
+branch  7 never executed
+call    8 never executed
+branch  9 never executed
+branch 10 never executed
+call   11 never executed
+branch 12 never executed
+branch 13 never executed
+        4:  113:	  continue;
+        -:  114:	}
+        -:  115:
+       26:  116:	if (next_vert == verts) {
+branch  0 taken 31% (fallthrough)
+branch  1 taken 69%
+        -:  117:	  // Found a complete path
+        8:  118:	  if (DEBUG) {
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+    #####:  119:	    state.distance = total_dist;
+    #####:  120:	    state.path.push_back(next_vert);
+call    0 never executed
+branch  1 never executed
+branch  2 never executed
+        -:  121:	    //state.visited.set(next_vert);
+        -:  122:	  }
+        -:  123:	  
+        8:  124:	  if (total_dist < min_distance) {
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        8:  125:	    min_distance = total_dist;
+        8:  126:	    min_path = state.path;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        8:  127:	    if (DEBUG) cout << "Found new min: " << state.display() << verts << endl;
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+call    2 never executed
+branch  3 never executed
+branch  4 never executed
+call    5 never executed
+branch  6 never executed
+branch  7 never executed
+call    8 never executed
+branch  9 never executed
+branch 10 never executed
+call   11 never executed
+branch 12 never executed
+branch 13 never executed
+call   14 never executed
+branch 15 never executed
+branch 16 never executed
+call   17 never executed
+call   18 never executed
+        -:  128:	  } else {
+    #####:  129:	    if (DEBUG) cout << "Found worse min: " << state.display() << verts << endl;
+branch  0 never executed
+branch  1 never executed
+call    2 never executed
+branch  3 never executed
+branch  4 never executed
+call    5 never executed
+branch  6 never executed
+branch  7 never executed
+call    8 never executed
+branch  9 never executed
+branch 10 never executed
+call   11 never executed
+branch 12 never executed
+branch 13 never executed
+call   14 never executed
+branch 15 never executed
+branch 16 never executed
+call   17 never executed
+call   18 never executed
+        -:  130:	  }
+        -:  131:	} else {
+       36:  132:	  state_element new_state(state);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 never executed
+        -:  133:	  
+        -:  134:	  //new_state.visited.set(next_vert);
+       18:  135:	  new_state.path.push_back(next_vert);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+       18:  136:	  new_state.distance = total_dist;
+        -:  137:
+       18:  138:	  if (DEBUG) cout << "Push partial: " << new_state.display() << endl;
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+call    2 never executed
+branch  3 never executed
+branch  4 never executed
+call    5 never executed
+branch  6 never executed
+branch  7 never executed
+call    8 never executed
+branch  9 never executed
+branch 10 never executed
+call   11 never executed
+branch 12 never executed
+branch 13 never executed
+call   14 never executed
+call   15 never executed
+       18:  139:	  paths.push(new_state);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:  140:	}
+        -:  141:      }
+        -:  142:    }
+        -:  143:  }
+        -:  144:
+       12:  145:  ostringstream solution;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 never executed
+        6:  146:  if (min_distance == numeric_limits<int>::max()) {
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+    #####:  147:    return "-1";
+call    0 never executed
+call    1 never executed
+branch  2 never executed
+branch  3 never executed
+call    4 never executed
+call    5 never executed
+        -:  148:  } else {
+       18:  149:    for (const auto& vert : min_path) {
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 67% (fallthrough)
+branch  4 taken 33%
+call    5 returned 100%
+call    6 returned 100%
+       12:  150:      solution << vert << " ";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+        -:  151:    }
+        6:  152:    solution << verts;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:  153:  }
+        -:  154:  
+        6:  155:  return solution.str();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:  156:}
+        -:  157:
+        -:  158:// -------------
+        -:  159:// solve
+        -:  160:// -------------
+        -:  161:
+function _Z5solveRSiRSo called 12 returned 100% blocks executed 68%
+       12:  162:void solve (istream& r, ostream& w) {
+        -:  163:  // parse input
+        -:  164:
+       12:  165:  int verts = 0;
+       12:  166:  int edges = 0;
+        -:  167:  {
+       24:  168:    string s;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 never executed
+       12:  169:    getline(r, s);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+       24:  170:    istringstream sin(s);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 never executed
+       12:  171:    sin >> verts >> edges;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+        -:  172:  }
+        -:  173:
+       24:  174:  TypeGraph graph;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 never executed
+        -:  175:  {
+       48:  176:    for (int x = 0; x < edges; ++x) {
+branch  0 taken 75% (fallthrough)
+branch  1 taken 25%
+       72:  177:      string s;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 never executed
+       36:  178:      getline(r, s);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+       72:  179:      istringstream sin(s);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 never executed
+        -:  180:      int i, j, k;
+       36:  181:      sin >> i >> j >> k;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+       36:  182:      graph[i][j] = k;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+       36:  183:      graph[j][i] = k;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+        -:  184:    }
+        -:  185:  }
+        -:  186:
+        -:  187:  // solve
+       12:  188:  w << eval(verts, graph) << endl;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+call   10 never executed
+function _GLOBAL__sub_I_DEBUG called 2 returned 100% blocks executed 100%
+function _Z41__static_initialization_and_destruction_0ii called 2 returned 100% blocks executed 100%
+       18:  189:}
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0%

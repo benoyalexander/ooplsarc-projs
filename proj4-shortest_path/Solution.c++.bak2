@@ -1,0 +1,147 @@
+// ----------------------------
+// projects/collatz/Collatz.c++
+// Copyright (C) 2015
+// Glenn P. Downing
+// ----------------------------
+
+// --------
+// includes
+// --------
+
+#include <cassert>  // assert
+#include <iostream> // endl, istream, ostream, cin, cout
+#include <sstream>  // istringstream
+#include <string>   // getline, string, to_string
+#include <limits>
+#include <algorithm>
+#include <bitset>
+#include <set>
+#include <list>
+#include <map>
+#include <queue>
+
+#include "Solution.h"
+
+using namespace std;
+
+bool DEBUG = false;
+
+void calc_paths(int vertex_end, const TypeGraph& graph, vector<int>& vertex_min, vector<int>& vertex_min_prev) {
+  vertex_min[1] = 0;
+  queue<int> vertexes;
+  vertexes.push(1);
+  bitset<100001> visited;
+
+  while (!vertexes.empty()) {
+    //set<int>::iterator tmp = vertexes.begin();
+    int vertex_curr = vertexes.front();
+    vertexes.pop();
+    int distance = vertex_min[vertex_curr];
+    //vertexes.erase(tmp);
+
+    if (DEBUG) cout << "At " << vertex_curr << endl;
+    //visited.set(vertex_curr);
+    
+    // Iterate through all destinations from vertex_curr
+    if (graph.find(vertex_curr) == graph.end()) {
+      // No edges for vertex_curr
+      if (DEBUG) cout << "No edges for " << vertex_curr << endl;
+      continue;
+    }
+    for (const auto& edge : graph.at(vertex_curr)) {
+      int vertex_next = edge.first;
+      int edge_distance = edge.second;
+
+      if (visited[vertex_next]) {
+	if (DEBUG) cout << "Already visited " << vertex_next << endl;
+	continue;
+      }
+
+      int total = distance + edge_distance;
+      if (DEBUG) cout << "Check " << vertex_curr << "->" << vertex_next << " " << total << " < (curr min)" << vertex_min[vertex_next] << endl;
+      if (total < vertex_min[vertex_next]) {
+	if (DEBUG) cout << "Found shorter distance " << vertex_curr << "->" << vertex_next << " " << total << endl;
+	vertex_min[vertex_next] = total;
+	vertex_min_prev[vertex_next] = vertex_curr;
+	if (vertex_next != vertex_end) {
+	  vertexes.push(vertex_next);
+	}
+      }
+    }
+  }
+
+  if (DEBUG) {
+    cout << "Final Min dists" << endl;
+    for (uint64_t x = 1; x < vertex_min.size(); ++x) {
+      cout << x << " dist=" << vertex_min[x] << endl;
+    }
+  }
+}
+
+// ------------
+// eval
+// ------------
+
+string eval (int verts, const TypeGraph& graph) {
+  // Early out conditions
+  if (graph.size() == 0) return "-1"; // no edges
+  if (graph.find(verts) == graph.end() || graph.at(verts).size() == 0) return "-1"; // Can't get to last state
+
+  vector<int> vertex_min(verts+1, numeric_limits<int>::max());
+  vector<int> vertex_min_prev(verts+1, numeric_limits<int>::max());
+  calc_paths(verts, graph, vertex_min, vertex_min_prev);
+
+  // Find shortest path
+  if (vertex_min[verts+1] == numeric_limits<int>::max()) return "-1";
+  list<int> path;
+  int vertex_prev = verts;
+
+  while (vertex_prev != 1) {
+    if (vertex_min[vertex_prev] == numeric_limits<int>::max()) {
+      return "-1";
+    } else {
+      path.push_front(vertex_prev);
+      vertex_prev = vertex_min_prev[vertex_prev];
+    }
+  }
+
+  ostringstream solution;
+  solution << "1";
+  for (auto& x : path)
+    solution << " " << x;
+  
+  return solution.str();
+}
+
+// -------------
+// solve
+// -------------
+
+void solve (istream& r, ostream& w) {
+  // parse input
+
+  int verts = 0;
+  int edges = 0;
+  {
+    string s;
+    getline(r, s);
+    istringstream sin(s);
+    sin >> verts >> edges;
+  }
+
+  TypeGraph graph;
+  {
+    for (int x = 0; x < edges; ++x) {
+      string s;
+      getline(r, s);
+      istringstream sin(s);
+      int i, j, k;
+      sin >> i >> j >> k;
+      graph[i][j] = k;
+      graph[j][i] = k;
+    }
+  }
+
+  // solve
+  w << eval(verts, graph) << endl;
+}

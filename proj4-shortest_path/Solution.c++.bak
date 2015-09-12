@@ -1,0 +1,189 @@
+// ----------------------------
+// projects/collatz/Collatz.c++
+// Copyright (C) 2015
+// Glenn P. Downing
+// ----------------------------
+
+// --------
+// includes
+// --------
+
+#include <cassert>  // assert
+#include <iostream> // endl, istream, ostream, cin, cout
+#include <sstream>  // istringstream
+#include <string>   // getline, string, to_string
+#include <queue>
+#include <limits>
+#include <algorithm>
+#include <bitset>
+
+#include "Solution.h"
+
+using namespace std;
+
+bool DEBUG = false;
+
+// ------------
+// priority queue
+// ------------
+
+class state_element {
+public:
+  friend bool operator>(const state_element& lhs,
+			const state_element& rhs);
+
+  string display() const {
+    ostringstream ret;
+    ret << "dist=" << distance << " path=";
+
+    for (auto& x : path) {
+      ret << x << ",";
+    }
+    
+    return ret.str();
+  }
+  
+  int distance = 0;
+  vector<int> path;
+};
+
+bool operator>(const state_element& lhs,
+	       const state_element& rhs) {
+  return lhs.distance > rhs.distance;
+}
+
+
+// ------------
+// eval
+// ------------
+
+string eval (int verts, const TypeGraph& graph) {
+  if (graph.size() == 0) return "-1"; // no edges
+  if (graph.find(verts) == graph.end() || graph.at(verts).size() == 0) return "-1"; // Can't get to last state
+
+  /*
+  for (auto& x : graph) {
+    for (auto& y : x.second) {
+      cout << x.first << " " << y.first << " " << y.second << endl;
+    }
+  }
+  */
+
+  priority_queue<state_element, std::vector<state_element>, std::greater<state_element> > paths;
+  bitset<100000> visited;
+
+  // current shortest
+  int min_distance = numeric_limits<int>::max();
+  vector<int> min_path;
+
+  // initial state for pq
+  state_element state;
+  //  state.visited.set(1);
+  state.path.push_back(1);
+  paths.push(state);
+  
+  while (!paths.empty()) {
+    state_element state(paths.top());
+    paths.pop();
+    if (DEBUG) cout << "Eval from state: " << state.display() << endl;
+    
+    const int& curr_vert = state.path.back();
+    const int& curr_dist = state.distance;
+
+    if (curr_dist >= min_distance) {
+      if (DEBUG) cout << "Skip vertex: Distance=" << curr_dist << " >= min_distance" << endl;
+      continue;
+    }
+
+    if (graph.find(curr_vert) == graph.end()) {
+      continue;
+    }
+    
+    for (const auto& x : graph.at(curr_vert)) {
+      const int& next_vert = x.first;
+      const int& next_dist = x.second;
+      const int total_dist = curr_dist + next_dist;
+      bool visited_next_vert = find(state.path.begin(), state.path.end(), next_vert) != state.path.end();
+	
+      if (DEBUG) cout << "Check edge " << curr_vert << "->" << next_vert << " visited=" << visited_next_vert << " min_dist=" << min_distance << endl;
+
+      if (!visited_next_vert) {
+	if (total_dist >= min_distance) {
+	  if (DEBUG) cout << "Skip edge: Distance=" << total_dist << " >= min_distance" << endl;
+	  continue;
+	}
+
+	if (next_vert == verts) {
+	  // Found a complete path
+	  if (DEBUG) {
+	    state.distance = total_dist;
+	    state.path.push_back(next_vert);
+	    //state.visited.set(next_vert);
+	  }
+	  
+	  if (total_dist < min_distance) {
+	    min_distance = total_dist;
+	    min_path = state.path;
+	    if (DEBUG) cout << "Found new min: " << state.display() << verts << endl;
+	  } else {
+	    if (DEBUG) cout << "Found worse min: " << state.display() << verts << endl;
+	  }
+	} else {
+	  state_element new_state(state);
+	  
+	  //new_state.visited.set(next_vert);
+	  new_state.path.push_back(next_vert);
+	  new_state.distance = total_dist;
+
+	  if (DEBUG) cout << "Push partial: " << new_state.display() << endl;
+	  paths.push(new_state);
+	}
+      }
+    }
+  }
+
+  ostringstream solution;
+  if (min_distance == numeric_limits<int>::max()) {
+    return "-1";
+  } else {
+    for (const auto& vert : min_path) {
+      solution << vert << " ";
+    }
+    solution << verts;
+  }
+  
+  return solution.str();
+}
+
+// -------------
+// solve
+// -------------
+
+void solve (istream& r, ostream& w) {
+  // parse input
+
+  int verts = 0;
+  int edges = 0;
+  {
+    string s;
+    getline(r, s);
+    istringstream sin(s);
+    sin >> verts >> edges;
+  }
+
+  TypeGraph graph;
+  {
+    for (int x = 0; x < edges; ++x) {
+      string s;
+      getline(r, s);
+      istringstream sin(s);
+      int i, j, k;
+      sin >> i >> j >> k;
+      graph[i][j] = k;
+      graph[j][i] = k;
+    }
+  }
+
+  // solve
+  w << eval(verts, graph) << endl;
+}

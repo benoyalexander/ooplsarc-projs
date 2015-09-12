@@ -1,0 +1,602 @@
+        -:    0:Source:/usr/include/c++/5.1.1/bits/stl_queue.h
+        -:    0:Graph:Solution.gcno
+        -:    0:Data:Solution.gcda
+        -:    0:Runs:2
+        -:    0:Programs:1
+        -:    1:// Queue implementation -*- C++ -*-
+        -:    2:
+        -:    3:// Copyright (C) 2001-2015 Free Software Foundation, Inc.
+        -:    4://
+        -:    5:// This file is part of the GNU ISO C++ Library.  This library is free
+        -:    6:// software; you can redistribute it and/or modify it under the
+        -:    7:// terms of the GNU General Public License as published by the
+        -:    8:// Free Software Foundation; either version 3, or (at your option)
+        -:    9:// any later version.
+        -:   10:
+        -:   11:// This library is distributed in the hope that it will be useful,
+        -:   12:// but WITHOUT ANY WARRANTY; without even the implied warranty of
+        -:   13:// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        -:   14:// GNU General Public License for more details.
+        -:   15:
+        -:   16:// Under Section 7 of GPL version 3, you are granted additional
+        -:   17:// permissions described in the GCC Runtime Library Exception, version
+        -:   18:// 3.1, as published by the Free Software Foundation.
+        -:   19:
+        -:   20:// You should have received a copy of the GNU General Public License and
+        -:   21:// a copy of the GCC Runtime Library Exception along with this program;
+        -:   22:// see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+        -:   23:// <http://www.gnu.org/licenses/>.
+        -:   24:
+        -:   25:/*
+        -:   26: *
+        -:   27: * Copyright (c) 1994
+        -:   28: * Hewlett-Packard Company
+        -:   29: *
+        -:   30: * Permission to use, copy, modify, distribute and sell this software
+        -:   31: * and its documentation for any purpose is hereby granted without fee,
+        -:   32: * provided that the above copyright notice appear in all copies and
+        -:   33: * that both that copyright notice and this permission notice appear
+        -:   34: * in supporting documentation.  Hewlett-Packard Company makes no
+        -:   35: * representations about the suitability of this software for any
+        -:   36: * purpose.  It is provided "as is" without express or implied warranty.
+        -:   37: *
+        -:   38: *
+        -:   39: * Copyright (c) 1996,1997
+        -:   40: * Silicon Graphics Computer Systems, Inc.
+        -:   41: *
+        -:   42: * Permission to use, copy, modify, distribute and sell this software
+        -:   43: * and its documentation for any purpose is hereby granted without fee,
+        -:   44: * provided that the above copyright notice appear in all copies and
+        -:   45: * that both that copyright notice and this permission notice appear
+        -:   46: * in supporting documentation.  Silicon Graphics makes no
+        -:   47: * representations about the suitability of this software for any
+        -:   48: * purpose.  It is provided "as is" without express or implied warranty.
+        -:   49: */
+        -:   50:
+        -:   51:/** @file bits/stl_queue.h
+        -:   52: *  This is an internal header file, included by other library headers.
+        -:   53: *  Do not attempt to use it directly. @headername{queue}
+        -:   54: */
+        -:   55:
+        -:   56:#ifndef _STL_QUEUE_H
+        -:   57:#define _STL_QUEUE_H 1
+        -:   58:
+        -:   59:#include <bits/concept_check.h>
+        -:   60:#include <debug/debug.h>
+        -:   61:#if __cplusplus >= 201103L
+        -:   62:# include <bits/uses_allocator.h>
+        -:   63:#endif
+        -:   64:
+        -:   65:namespace std _GLIBCXX_VISIBILITY(default)
+        -:   66:{
+        -:   67:_GLIBCXX_BEGIN_NAMESPACE_VERSION
+        -:   68:
+        -:   69:  /**
+        -:   70:   *  @brief  A standard container giving FIFO behavior.
+        -:   71:   *
+        -:   72:   *  @ingroup sequences
+        -:   73:   *
+        -:   74:   *  @tparam _Tp  Type of element.
+        -:   75:   *  @tparam _Sequence  Type of underlying sequence, defaults to deque<_Tp>.
+        -:   76:   *
+        -:   77:   *  Meets many of the requirements of a
+        -:   78:   *  <a href="tables.html#65">container</a>,
+        -:   79:   *  but does not define anything to do with iterators.  Very few of the
+        -:   80:   *  other standard container interfaces are defined.
+        -:   81:   *
+        -:   82:   *  This is not a true container, but an @e adaptor.  It holds another
+        -:   83:   *  container, and provides a wrapper interface to that container.  The
+        -:   84:   *  wrapper is what enforces strict first-in-first-out %queue behavior.
+        -:   85:   *
+        -:   86:   *  The second template parameter defines the type of the underlying
+        -:   87:   *  sequence/container.  It defaults to std::deque, but it can be any type
+        -:   88:   *  that supports @c front, @c back, @c push_back, and @c pop_front,
+        -:   89:   *  such as std::list or an appropriate user-defined type.
+        -:   90:   *
+        -:   91:   *  Members not found in @a normal containers are @c container_type,
+        -:   92:   *  which is a typedef for the second Sequence parameter, and @c push and
+        -:   93:   *  @c pop, which are standard %queue/FIFO operations.
+        -:   94:  */
+        -:   95:  template<typename _Tp, typename _Sequence = deque<_Tp> >
+        -:   96:    class queue
+        -:   97:    {
+        -:   98:      // concept requirements
+        -:   99:      typedef typename _Sequence::value_type _Sequence_value_type;
+        -:  100:      __glibcxx_class_requires(_Tp, _SGIAssignableConcept)
+        -:  101:      __glibcxx_class_requires(_Sequence, _FrontInsertionSequenceConcept)
+        -:  102:      __glibcxx_class_requires(_Sequence, _BackInsertionSequenceConcept)
+        -:  103:      __glibcxx_class_requires2(_Tp, _Sequence_value_type, _SameTypeConcept)
+        -:  104:
+        -:  105:      template<typename _Tp1, typename _Seq1>
+        -:  106:        friend bool
+        -:  107:        operator==(const queue<_Tp1, _Seq1>&, const queue<_Tp1, _Seq1>&);
+        -:  108:
+        -:  109:      template<typename _Tp1, typename _Seq1>
+        -:  110:        friend bool
+        -:  111:        operator<(const queue<_Tp1, _Seq1>&, const queue<_Tp1, _Seq1>&);
+        -:  112:
+        -:  113:    public:
+        -:  114:      typedef typename _Sequence::value_type                value_type;
+        -:  115:      typedef typename _Sequence::reference                 reference;
+        -:  116:      typedef typename _Sequence::const_reference           const_reference;
+        -:  117:      typedef typename _Sequence::size_type                 size_type;
+        -:  118:      typedef          _Sequence                            container_type;
+        -:  119:
+        -:  120:    protected:
+        -:  121:      /**
+        -:  122:       *  'c' is the underlying container.  Maintainers wondering why
+        -:  123:       *  this isn't uglified as per style guidelines should note that
+        -:  124:       *  this name is specified in the standard, [23.2.3.1].  (Why?
+        -:  125:       *  Presumably for the same reason that it's protected instead
+        -:  126:       *  of private: to allow derivation.  But none of the other
+        -:  127:       *  containers allow for derivation.  Odd.)
+        -:  128:       */
+        -:  129:      _Sequence c;
+        -:  130:
+        -:  131:    public:
+        -:  132:      /**
+        -:  133:       *  @brief  Default constructor creates no elements.
+        -:  134:       */
+        -:  135:#if __cplusplus < 201103L
+        -:  136:      explicit
+        -:  137:      queue(const _Sequence& __c = _Sequence())
+        -:  138:      : c(__c) { }
+        -:  139:#else
+        -:  140:      explicit
+        -:  141:      queue(const _Sequence& __c)
+        -:  142:      : c(__c) { }
+        -:  143:
+        -:  144:      explicit
+        -:  145:      queue(_Sequence&& __c = _Sequence())
+        -:  146:      : c(std::move(__c)) { }
+        -:  147:#endif
+        -:  148:
+        -:  149:      /**
+        -:  150:       *  Returns true if the %queue is empty.
+        -:  151:       */
+        -:  152:      bool
+        -:  153:      empty() const
+        -:  154:      { return c.empty(); }
+        -:  155:
+        -:  156:      /**  Returns the number of elements in the %queue.  */
+        -:  157:      size_type
+        -:  158:      size() const
+        -:  159:      { return c.size(); }
+        -:  160:
+        -:  161:      /**
+        -:  162:       *  Returns a read/write reference to the data at the first
+        -:  163:       *  element of the %queue.
+        -:  164:       */
+        -:  165:      reference
+        -:  166:      front()
+        -:  167:      {
+        -:  168:	__glibcxx_requires_nonempty();
+        -:  169:	return c.front();
+        -:  170:      }
+        -:  171:
+        -:  172:      /**
+        -:  173:       *  Returns a read-only (constant) reference to the data at the first
+        -:  174:       *  element of the %queue.
+        -:  175:       */
+        -:  176:      const_reference
+        -:  177:      front() const
+        -:  178:      {
+        -:  179:	__glibcxx_requires_nonempty();
+        -:  180:	return c.front();
+        -:  181:      }
+        -:  182:
+        -:  183:      /**
+        -:  184:       *  Returns a read/write reference to the data at the last
+        -:  185:       *  element of the %queue.
+        -:  186:       */
+        -:  187:      reference
+        -:  188:      back()
+        -:  189:      {
+        -:  190:	__glibcxx_requires_nonempty();
+        -:  191:	return c.back();
+        -:  192:      }
+        -:  193:
+        -:  194:      /**
+        -:  195:       *  Returns a read-only (constant) reference to the data at the last
+        -:  196:       *  element of the %queue.
+        -:  197:       */
+        -:  198:      const_reference
+        -:  199:      back() const
+        -:  200:      {
+        -:  201:	__glibcxx_requires_nonempty();
+        -:  202:	return c.back();
+        -:  203:      }
+        -:  204:
+        -:  205:      /**
+        -:  206:       *  @brief  Add data to the end of the %queue.
+        -:  207:       *  @param  __x  Data to be added.
+        -:  208:       *
+        -:  209:       *  This is a typical %queue operation.  The function creates an
+        -:  210:       *  element at the end of the %queue and assigns the given data
+        -:  211:       *  to it.  The time complexity of the operation depends on the
+        -:  212:       *  underlying sequence.
+        -:  213:       */
+        -:  214:      void
+        -:  215:      push(const value_type& __x)
+        -:  216:      { c.push_back(__x); }
+        -:  217:
+        -:  218:#if __cplusplus >= 201103L
+        -:  219:      void
+        -:  220:      push(value_type&& __x)
+        -:  221:      { c.push_back(std::move(__x)); }
+        -:  222:
+        -:  223:      template<typename... _Args>
+        -:  224:        void
+        -:  225:        emplace(_Args&&... __args)
+        -:  226:	{ c.emplace_back(std::forward<_Args>(__args)...); }
+        -:  227:#endif
+        -:  228:
+        -:  229:      /**
+        -:  230:       *  @brief  Removes first element.
+        -:  231:       *
+        -:  232:       *  This is a typical %queue operation.  It shrinks the %queue by one.
+        -:  233:       *  The time complexity of the operation depends on the underlying
+        -:  234:       *  sequence.
+        -:  235:       *
+        -:  236:       *  Note that no data is returned, and if the first element's
+        -:  237:       *  data is needed, it should be retrieved before pop() is
+        -:  238:       *  called.
+        -:  239:       */
+        -:  240:      void
+        -:  241:      pop()
+        -:  242:      {
+        -:  243:	__glibcxx_requires_nonempty();
+        -:  244:	c.pop_front();
+        -:  245:      }
+        -:  246:
+        -:  247:#if __cplusplus >= 201103L
+        -:  248:      void
+        -:  249:      swap(queue& __q)
+        -:  250:      noexcept(noexcept(swap(c, __q.c)))
+        -:  251:      {
+        -:  252:	using std::swap;
+        -:  253:	swap(c, __q.c);
+        -:  254:      }
+        -:  255:#endif
+        -:  256:    };
+        -:  257:
+        -:  258:  /**
+        -:  259:   *  @brief  Queue equality comparison.
+        -:  260:   *  @param  __x  A %queue.
+        -:  261:   *  @param  __y  A %queue of the same type as @a __x.
+        -:  262:   *  @return  True iff the size and elements of the queues are equal.
+        -:  263:   *
+        -:  264:   *  This is an equivalence relation.  Complexity and semantics depend on the
+        -:  265:   *  underlying sequence type, but the expected rules are:  this relation is
+        -:  266:   *  linear in the size of the sequences, and queues are considered equivalent
+        -:  267:   *  if their sequences compare equal.
+        -:  268:  */
+        -:  269:  template<typename _Tp, typename _Seq>
+        -:  270:    inline bool
+        -:  271:    operator==(const queue<_Tp, _Seq>& __x, const queue<_Tp, _Seq>& __y)
+        -:  272:    { return __x.c == __y.c; }
+        -:  273:
+        -:  274:  /**
+        -:  275:   *  @brief  Queue ordering relation.
+        -:  276:   *  @param  __x  A %queue.
+        -:  277:   *  @param  __y  A %queue of the same type as @a x.
+        -:  278:   *  @return  True iff @a __x is lexicographically less than @a __y.
+        -:  279:   *
+        -:  280:   *  This is an total ordering relation.  Complexity and semantics
+        -:  281:   *  depend on the underlying sequence type, but the expected rules
+        -:  282:   *  are: this relation is linear in the size of the sequences, the
+        -:  283:   *  elements must be comparable with @c <, and
+        -:  284:   *  std::lexicographical_compare() is usually used to make the
+        -:  285:   *  determination.
+        -:  286:  */
+        -:  287:  template<typename _Tp, typename _Seq>
+        -:  288:    inline bool
+        -:  289:    operator<(const queue<_Tp, _Seq>& __x, const queue<_Tp, _Seq>& __y)
+        -:  290:    { return __x.c < __y.c; }
+        -:  291:
+        -:  292:  /// Based on operator==
+        -:  293:  template<typename _Tp, typename _Seq>
+        -:  294:    inline bool
+        -:  295:    operator!=(const queue<_Tp, _Seq>& __x, const queue<_Tp, _Seq>& __y)
+        -:  296:    { return !(__x == __y); }
+        -:  297:
+        -:  298:  /// Based on operator<
+        -:  299:  template<typename _Tp, typename _Seq>
+        -:  300:    inline bool
+        -:  301:    operator>(const queue<_Tp, _Seq>& __x, const queue<_Tp, _Seq>& __y)
+        -:  302:    { return __y < __x; }
+        -:  303:
+        -:  304:  /// Based on operator<
+        -:  305:  template<typename _Tp, typename _Seq>
+        -:  306:    inline bool
+        -:  307:    operator<=(const queue<_Tp, _Seq>& __x, const queue<_Tp, _Seq>& __y)
+        -:  308:    { return !(__y < __x); }
+        -:  309:
+        -:  310:  /// Based on operator<
+        -:  311:  template<typename _Tp, typename _Seq>
+        -:  312:    inline bool
+        -:  313:    operator>=(const queue<_Tp, _Seq>& __x, const queue<_Tp, _Seq>& __y)
+        -:  314:    { return !(__x < __y); }
+        -:  315:
+        -:  316:#if __cplusplus >= 201103L
+        -:  317:  template<typename _Tp, typename _Seq>
+        -:  318:    inline void
+        -:  319:    swap(queue<_Tp, _Seq>& __x, queue<_Tp, _Seq>& __y)
+        -:  320:    noexcept(noexcept(__x.swap(__y)))
+        -:  321:    { __x.swap(__y); }
+        -:  322:
+        -:  323:  template<typename _Tp, typename _Seq, typename _Alloc>
+        -:  324:    struct uses_allocator<queue<_Tp, _Seq>, _Alloc>
+        -:  325:    : public uses_allocator<_Seq, _Alloc>::type { };
+        -:  326:#endif
+        -:  327:
+        -:  328:  /**
+        -:  329:   *  @brief  A standard container automatically sorting its contents.
+        -:  330:   *
+        -:  331:   *  @ingroup sequences
+        -:  332:   *
+        -:  333:   *  @tparam _Tp  Type of element.
+        -:  334:   *  @tparam _Sequence  Type of underlying sequence, defaults to vector<_Tp>.
+        -:  335:   *  @tparam _Compare  Comparison function object type, defaults to 
+        -:  336:   *                    less<_Sequence::value_type>.
+        -:  337:   *
+        -:  338:   *  This is not a true container, but an @e adaptor.  It holds
+        -:  339:   *  another container, and provides a wrapper interface to that
+        -:  340:   *  container.  The wrapper is what enforces priority-based sorting 
+        -:  341:   *  and %queue behavior.  Very few of the standard container/sequence
+        -:  342:   *  interface requirements are met (e.g., iterators).
+        -:  343:   *
+        -:  344:   *  The second template parameter defines the type of the underlying
+        -:  345:   *  sequence/container.  It defaults to std::vector, but it can be
+        -:  346:   *  any type that supports @c front(), @c push_back, @c pop_back,
+        -:  347:   *  and random-access iterators, such as std::deque or an
+        -:  348:   *  appropriate user-defined type.
+        -:  349:   *
+        -:  350:   *  The third template parameter supplies the means of making
+        -:  351:   *  priority comparisons.  It defaults to @c less<value_type> but
+        -:  352:   *  can be anything defining a strict weak ordering.
+        -:  353:   *
+        -:  354:   *  Members not found in @a normal containers are @c container_type,
+        -:  355:   *  which is a typedef for the second Sequence parameter, and @c
+        -:  356:   *  push, @c pop, and @c top, which are standard %queue operations.
+        -:  357:   *
+        -:  358:   *  @note No equality/comparison operators are provided for
+        -:  359:   *  %priority_queue.
+        -:  360:   *
+        -:  361:   *  @note Sorting of the elements takes place as they are added to,
+        -:  362:   *  and removed from, the %priority_queue using the
+        -:  363:   *  %priority_queue's member functions.  If you access the elements
+        -:  364:   *  by other means, and change their data such that the sorting
+        -:  365:   *  order would be different, the %priority_queue will not re-sort
+        -:  366:   *  the elements for you.  (How could it know to do so?)
+        -:  367:  */
+        -:  368:  template<typename _Tp, typename _Sequence = vector<_Tp>,
+        -:  369:	   typename _Compare  = less<typename _Sequence::value_type> >
+function _ZNSt14priority_queueI13state_elementSt6vectorIS0_SaIS0_EESt7greaterIS0_EED2Ev called 6 returned 100% blocks executed 100%
+        6:  370:    class priority_queue
+call    0 returned 100%
+        -:  371:    {
+        -:  372:      // concept requirements
+        -:  373:      typedef typename _Sequence::value_type _Sequence_value_type;
+        -:  374:      __glibcxx_class_requires(_Tp, _SGIAssignableConcept)
+        -:  375:      __glibcxx_class_requires(_Sequence, _SequenceConcept)
+        -:  376:      __glibcxx_class_requires(_Sequence, _RandomAccessContainerConcept)
+        -:  377:      __glibcxx_class_requires2(_Tp, _Sequence_value_type, _SameTypeConcept)
+        -:  378:      __glibcxx_class_requires4(_Compare, bool, _Tp, _Tp,
+        -:  379:				_BinaryFunctionConcept)
+        -:  380:
+        -:  381:    public:
+        -:  382:      typedef typename _Sequence::value_type                value_type;
+        -:  383:      typedef typename _Sequence::reference                 reference;
+        -:  384:      typedef typename _Sequence::const_reference           const_reference;
+        -:  385:      typedef typename _Sequence::size_type                 size_type;
+        -:  386:      typedef          _Sequence                            container_type;
+        -:  387:
+        -:  388:    protected:
+        -:  389:      //  See queue::c for notes on these names.
+        -:  390:      _Sequence  c;
+        -:  391:      _Compare   comp;
+        -:  392:
+        -:  393:    public:
+        -:  394:      /**
+        -:  395:       *  @brief  Default constructor creates no elements.
+        -:  396:       */
+        -:  397:#if __cplusplus < 201103L
+        -:  398:      explicit
+        -:  399:      priority_queue(const _Compare& __x = _Compare(),
+        -:  400:		     const _Sequence& __s = _Sequence())
+        -:  401:      : c(__s), comp(__x)
+        -:  402:      { std::make_heap(c.begin(), c.end(), comp); }
+        -:  403:#else
+        -:  404:      explicit
+        -:  405:      priority_queue(const _Compare& __x,
+        -:  406:		     const _Sequence& __s)
+        -:  407:      : c(__s), comp(__x)
+        -:  408:      { std::make_heap(c.begin(), c.end(), comp); }
+        -:  409:
+        -:  410:      explicit
+function _ZNSt14priority_queueI13state_elementSt6vectorIS0_SaIS0_EESt7greaterIS0_EEC2ERKS5_OS3_ called 6 returned 100% blocks executed 88%
+        6:  411:      priority_queue(const _Compare& __x = _Compare(),
+        -:  412:		     _Sequence&& __s = _Sequence())
+        6:  413:      : c(std::move(__s)), comp(__x)
+call    0 returned 100%
+call    1 returned 100%
+call    2 never executed
+        6:  414:      { std::make_heap(c.begin(), c.end(), comp); }
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        -:  415:#endif
+        -:  416:
+        -:  417:      /**
+        -:  418:       *  @brief  Builds a %queue from a range.
+        -:  419:       *  @param  __first  An input iterator.
+        -:  420:       *  @param  __last  An input iterator.
+        -:  421:       *  @param  __x  A comparison functor describing a strict weak ordering.
+        -:  422:       *  @param  __s  An initial sequence with which to start.
+        -:  423:       *
+        -:  424:       *  Begins by copying @a __s, inserting a copy of the elements
+        -:  425:       *  from @a [first,last) into the copy of @a __s, then ordering
+        -:  426:       *  the copy according to @a __x.
+        -:  427:       *
+        -:  428:       *  For more information on function objects, see the
+        -:  429:       *  documentation on @link functors functor base
+        -:  430:       *  classes@endlink.
+        -:  431:       */
+        -:  432:#if __cplusplus < 201103L
+        -:  433:      template<typename _InputIterator>
+        -:  434:        priority_queue(_InputIterator __first, _InputIterator __last,
+        -:  435:		       const _Compare& __x = _Compare(),
+        -:  436:		       const _Sequence& __s = _Sequence())
+        -:  437:	: c(__s), comp(__x)
+        -:  438:        {
+        -:  439:	  __glibcxx_requires_valid_range(__first, __last);
+        -:  440:	  c.insert(c.end(), __first, __last);
+        -:  441:	  std::make_heap(c.begin(), c.end(), comp);
+        -:  442:	}
+        -:  443:#else
+        -:  444:      template<typename _InputIterator>
+        -:  445:        priority_queue(_InputIterator __first, _InputIterator __last,
+        -:  446:		       const _Compare& __x,
+        -:  447:		       const _Sequence& __s)
+        -:  448:	: c(__s), comp(__x)
+        -:  449:        {
+        -:  450:	  __glibcxx_requires_valid_range(__first, __last);
+        -:  451:	  c.insert(c.end(), __first, __last);
+        -:  452:	  std::make_heap(c.begin(), c.end(), comp);
+        -:  453:	}
+        -:  454:
+        -:  455:      template<typename _InputIterator>
+        -:  456:        priority_queue(_InputIterator __first, _InputIterator __last,
+        -:  457:		       const _Compare& __x = _Compare(),
+        -:  458:		       _Sequence&& __s = _Sequence())
+        -:  459:	: c(std::move(__s)), comp(__x)
+        -:  460:        {
+        -:  461:	  __glibcxx_requires_valid_range(__first, __last);
+        -:  462:	  c.insert(c.end(), __first, __last);
+        -:  463:	  std::make_heap(c.begin(), c.end(), comp);
+        -:  464:	}
+        -:  465:#endif
+        -:  466:
+        -:  467:      /**
+        -:  468:       *  Returns true if the %queue is empty.
+        -:  469:       */
+        -:  470:      bool
+function _ZNKSt14priority_queueI13state_elementSt6vectorIS0_SaIS0_EESt7greaterIS0_EE5emptyEv called 30 returned 100% blocks executed 100%
+       30:  471:      empty() const
+       30:  472:      { return c.empty(); }
+call    0 returned 100%
+        -:  473:
+        -:  474:      /**  Returns the number of elements in the %queue.  */
+        -:  475:      size_type
+        -:  476:      size() const
+        -:  477:      { return c.size(); }
+        -:  478:
+        -:  479:      /**
+        -:  480:       *  Returns a read-only (constant) reference to the data at the first
+        -:  481:       *  element of the %queue.
+        -:  482:       */
+        -:  483:      const_reference
+function _ZNKSt14priority_queueI13state_elementSt6vectorIS0_SaIS0_EESt7greaterIS0_EE3topEv called 24 returned 100% blocks executed 100%
+       24:  484:      top() const
+        -:  485:      {
+        -:  486:	__glibcxx_requires_nonempty();
+       24:  487:	return c.front();
+call    0 returned 100%
+        -:  488:      }
+        -:  489:
+        -:  490:      /**
+        -:  491:       *  @brief  Add data to the %queue.
+        -:  492:       *  @param  __x  Data to be added.
+        -:  493:       *
+        -:  494:       *  This is a typical %queue operation.
+        -:  495:       *  The time complexity of the operation depends on the underlying
+        -:  496:       *  sequence.
+        -:  497:       */
+        -:  498:      void
+function _ZNSt14priority_queueI13state_elementSt6vectorIS0_SaIS0_EESt7greaterIS0_EE4pushERKS0_ called 24 returned 100% blocks executed 100%
+       24:  499:      push(const value_type& __x)
+        -:  500:      {
+       24:  501:	c.push_back(__x);
+call    0 returned 100%
+       24:  502:	std::push_heap(c.begin(), c.end(), comp);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+       24:  503:      }
+        -:  504:
+        -:  505:#if __cplusplus >= 201103L
+        -:  506:      void
+        -:  507:      push(value_type&& __x)
+        -:  508:      {
+        -:  509:	c.push_back(std::move(__x));
+        -:  510:	std::push_heap(c.begin(), c.end(), comp);
+        -:  511:      }
+        -:  512:
+        -:  513:      template<typename... _Args>
+        -:  514:        void
+        -:  515:        emplace(_Args&&... __args)
+        -:  516:	{
+        -:  517:	  c.emplace_back(std::forward<_Args>(__args)...);
+        -:  518:	  std::push_heap(c.begin(), c.end(), comp);
+        -:  519:	}
+        -:  520:#endif
+        -:  521:
+        -:  522:      /**
+        -:  523:       *  @brief  Removes first element.
+        -:  524:       *
+        -:  525:       *  This is a typical %queue operation.  It shrinks the %queue
+        -:  526:       *  by one.  The time complexity of the operation depends on the
+        -:  527:       *  underlying sequence.
+        -:  528:       *
+        -:  529:       *  Note that no data is returned, and if the first element's
+        -:  530:       *  data is needed, it should be retrieved before pop() is
+        -:  531:       *  called.
+        -:  532:       */
+        -:  533:      void
+function _ZNSt14priority_queueI13state_elementSt6vectorIS0_SaIS0_EESt7greaterIS0_EE3popEv called 24 returned 100% blocks executed 100%
+       24:  534:      pop()
+        -:  535:      {
+        -:  536:	__glibcxx_requires_nonempty();
+       24:  537:	std::pop_heap(c.begin(), c.end(), comp);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+       24:  538:	c.pop_back();
+call    0 returned 100%
+       24:  539:      }
+        -:  540:
+        -:  541:#if __cplusplus >= 201103L
+        -:  542:      void
+        -:  543:      swap(priority_queue& __pq)
+        -:  544:      noexcept(noexcept(swap(c, __pq.c)) && noexcept(swap(comp, __pq.comp)))
+        -:  545:      {
+        -:  546:	using std::swap;
+        -:  547:	swap(c, __pq.c);
+        -:  548:	swap(comp, __pq.comp);
+        -:  549:      }
+        -:  550:#endif
+        -:  551:    };
+        -:  552:
+        -:  553:  // No equality/comparison operators are provided for priority_queue.
+        -:  554:
+        -:  555:#if __cplusplus >= 201103L
+        -:  556:  template<typename _Tp, typename _Sequence, typename _Compare>
+        -:  557:    inline void
+        -:  558:    swap(priority_queue<_Tp, _Sequence, _Compare>& __x,
+        -:  559:	 priority_queue<_Tp, _Sequence, _Compare>& __y)
+        -:  560:    noexcept(noexcept(__x.swap(__y)))
+        -:  561:    { __x.swap(__y); }
+        -:  562:
+        -:  563:  template<typename _Tp, typename _Sequence, typename _Compare,
+        -:  564:	   typename _Alloc>
+        -:  565:    struct uses_allocator<priority_queue<_Tp, _Sequence, _Compare>, _Alloc>
+        -:  566:    : public uses_allocator<_Sequence, _Alloc>::type { };
+        -:  567:#endif
+        -:  568:
+        -:  569:_GLIBCXX_END_NAMESPACE_VERSION
+        -:  570:} // namespace
+        -:  571:
+        -:  572:#endif /* _STL_QUEUE_H */
