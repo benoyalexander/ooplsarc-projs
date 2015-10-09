@@ -18,6 +18,12 @@
 
 using namespace std;
 
+#ifdef DBG
+bool DEBUG = true;
+#else
+bool DEBUG = false;
+#endif
+
 
 // ------------
 // eval

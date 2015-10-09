@@ -41,12 +41,12 @@ submit:
 RunSolution: Solution.h Solution.c++ RunSolution.c++ submit
 	$(CXX) $(CXXFLAGS) $(GCOVFLAGS) Solution.c++ RunSolution.c++ -o RunSolution
 
-TestSolution: Solution.h Solution.c++ TestSolution.c++ submit
+release: Solution.h Solution.c++ TestSolution.c++ submit
 	$(CXX) $(CXXFLAGS) $(GCOVFLAGS) Solution.c++ TestSolution.c++ -o TestSolution $(LDFLAGS)
 	./TestSolution
 
-DebugTestSolution: Solution.h Solution.c++ TestSolution.c++ submit
-	$(CXX) $(CXXFLAGS) $(GCOVFLAGS) -g Solution.c++ TestSolution.c++ -o TestSolution $(LDFLAGS)
+debug: Solution.h Solution.c++ TestSolution.c++ submit
+	$(CXX) $(CXXFLAGS) $(GCOVFLAGS) -g -DDBG Solution.c++ TestSolution.c++ -o TestSolution $(LDFLAGS)
 	./TestSolution
 
 
