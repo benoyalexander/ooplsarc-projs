@@ -22,7 +22,7 @@
 
 using namespace std;
 
-bool DEBUG = true;
+bool DEBUG = false;
 
 // ------------
 // priority queue
@@ -47,16 +47,18 @@ void calc_paths(int max_vertex, const TypeGraph& graph, TVertexMinimumPrevious& 
   // initial state for pq
   TVertexDistance state(1, 0);
   paths.push(state);
+  vert_min_dist[1].first = 0;
+  vert_min_dist[1].second = 0;
   
   while (!paths.empty()) {
     TVertexDistance state(paths.top());
     paths.pop();
-    if (DEBUG) cout << "Eval from state: " << state.first << endl;
     
     const int& curr_vert = state.first;
     const int& curr_dist = state.second;
 
     visited.set(curr_vert);
+    if (DEBUG) cout << "Visited " << curr_vert << endl;
 
     for (const auto x : graph.at(curr_vert)) {
       const int next_vert = x.first;
@@ -65,15 +67,16 @@ void calc_paths(int max_vertex, const TypeGraph& graph, TVertexMinimumPrevious& 
 
       bool visited_next_vert = visited[next_vert];
 	
-      if (DEBUG) cout << "Check edge " << curr_vert << "->" << next_vert << " visited=" << visited_next_vert << " dist=" << total_dist << endl;
+      if (DEBUG) cout << "Check edge " << curr_vert << "->" << next_vert << " visited=" << visited_next_vert << " dist=" << total_dist << " min for " << next_vert << "=" << vert_min_dist[next_vert].first << endl;
 
-      if (total_dist < vert_min_dist[next_vert].first) {
+      if (total_dist < vert_min_dist[next_vert].first && !visited[next_vert]) {
 	vert_min_dist[next_vert].first = total_dist; // Min total dist
 	vert_min_dist[next_vert].second = curr_vert; // Prev vertex
-	if (!visited[next_vert] && next_vert != max_vertex) {
+	if (DEBUG) cout << "Min: " << curr_vert << "->" << next_vert << " dist=" << vert_min_dist[next_vert].first << " prevV=" << vert_min_dist[next_vert].second << endl;	  
+	if (next_vert != max_vertex) {
 	  TVertexDistance state(next_vert, total_dist);
 	  paths.push(state);
-	  if (DEBUG) cout << "Push: " << curr_vert << "->" << next_vert << " dist=" << vert_min_dist[next_vert].first << " prevV=" << vert_min_dist[next_vert].second << endl;	  
+	  if (DEBUG) cout << "Push: " << curr_vert << "->" << next_vert << endl;
 	}
       }
     }
@@ -88,31 +91,31 @@ string eval (int max_vertex, const TypeGraph& graph) {
   if (graph.size() == 0) return "-1"; // no edges
   if (graph.find(max_vertex) == graph.end() || graph.at(max_vertex).size() == 0) return "-1"; // Can't get to last state
 
-  TVertexMinimumPrevious min_paths(max_vertex, make_pair(numeric_limits<int>::max(), numeric_limits<int>::max()));
+  TVertexMinimumPrevious min_paths(max_vertex + 1, make_pair(numeric_limits<int>::max(), numeric_limits<int>::max()));
 
   calc_paths(max_vertex, graph, min_paths);
-
-  ostringstream solution;
 
   int vertex = max_vertex;
   list<int> path;
 
-  cout << "Paths: ";
-  while (vertex != 1) {
-    cout << vertex << " ";
+  while (vertex != 0) {
     if (min_paths[max_vertex].second == numeric_limits<int>::max()) {
+      if (DEBUG) cout << "Vertex with MAX_INT" << endl;
       return "-1";
     }
     path.push_front(vertex);
+    //cout << "Push vertex:" << vertex << " " << endl;;
     vertex = min_paths[vertex].second;
   }
-  cout << endl;
+
+  ostringstream solution;
 
   for (auto& item : path) {
-    solution << item << " ";
+    solution << item;
+    if (item != max_vertex) {
+      solution << " ";
+    }
   }
-  solution << max_vertex;
-  
   
   return solution.str();
 }
