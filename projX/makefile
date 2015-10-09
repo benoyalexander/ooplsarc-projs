@@ -17,6 +17,7 @@ clean:
 	rm -f RunSolution.tmp
 	rm -f TestSolution
 	rm -f TestSolution.tmp
+	rm -f Submission.cpp
 
 config:
 	git config -l
@@ -38,19 +39,19 @@ status:
 submit:
 	cat Solution.h Solution.c++ RunSolution.c++ | sed -e "1,$$ s/\#include \"Solution.h\"//" > Submission.cpp
 
-RunSolution: Solution.h Solution.c++ RunSolution.c++ submit
-	$(CXX) $(CXXFLAGS) $(GCOVFLAGS) Solution.c++ RunSolution.c++ -o RunSolution
-
 release: Solution.h Solution.c++ TestSolution.c++ submit
 	$(CXX) $(CXXFLAGS) $(GCOVFLAGS) Solution.c++ TestSolution.c++ -o TestSolution $(LDFLAGS)
-	./TestSolution
 
 debug: Solution.h Solution.c++ TestSolution.c++ submit
 	$(CXX) $(CXXFLAGS) $(GCOVFLAGS) -g -DDBG Solution.c++ TestSolution.c++ -o TestSolution $(LDFLAGS)
+
+run: release
 	./TestSolution
 
+RunSolution: Solution.h Solution.c++ RunSolution.c++ submit
+	$(CXX) $(CXXFLAGS) $(GCOVFLAGS) Solution.c++ RunSolution.c++ -o RunSolution
 
-check: TestSolution
+check: release
 	$(VALGRIND) ./TestSolution                                        >  TestSolution.tmp 2>&1
 	$(GCOV) -b Solution.c++     | grep -A 5 "File 'Solution.c++'"     >> TestSolution.tmp
 	$(GCOV) -b TestSolution.c++ | grep -A 5 "File 'TestSolution.c++'" >> TestSolution.tmp
