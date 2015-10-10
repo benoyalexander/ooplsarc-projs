@@ -82,7 +82,7 @@ void eval (ostream& output, int num_ballots, const TypeBallots& ballots, int num
 	if (DEBUG) cout << "Found new lowest vote total " << lowest_vote_count << " from candidate " << x + 1 <<  endl;
       } else if (num_votes == lowest_vote_count) {
 	++num_candidates_with_lowest_vote;
-	if (DEBUG) cout << "Found " << x + 1 << " which is another with lowest vote total" << endl;
+	if (DEBUG) cout << "Found candidate " << x + 1 << " which is another with lowest vote total" << endl;
       }
     }
 
@@ -158,6 +158,7 @@ void solve (istream& r, ostream& w) {
   vector<int> vote(MAX_CANDIDATES);
   
   while (getline(r, s)) {
+    //if (DEBUG) cout << "Next char " << r.peek() << endl;
     istringstream sin(s);
 
     if (state == 0) {
@@ -186,14 +187,15 @@ void solve (istream& r, ostream& w) {
       }
     } else if (state == 4) {
       // Ballots
-      if (s == "") {
+      if (DEBUG) cout << "got <" << s << ">" << endl;
+      if (s == "" || r.eof()) {
 	if (DEBUG) cout << "Calling eval()" << endl;
 	eval(w, ballot_idx, ballots, num_candidates, str_candidates);
 
 	--num_trials;
 	if (num_trials) {
 	  if (DEBUG) cout << "Next trial" << endl;
-	  w << endl;
+	  w << endl; // New line to separate answers
 	  state = 2;
 	  // Reset data structs
 	  ballots.clear();
@@ -203,7 +205,6 @@ void solve (istream& r, ostream& w) {
 	  if (DEBUG) cout << "Done with trials" << endl;
 	  return;
 	}
-
       } else {
 	istringstream b(s);
 	int i = 0;
@@ -217,8 +218,13 @@ void solve (istream& r, ostream& w) {
 
 	ballots[ballot_idx++] = (vote);
       }
+
     } else {
       cout << "Unknown state" << endl;
     }
   }
+
+  if (DEBUG) cout << "EOF" << endl;
+  if (DEBUG) cout << "Calling eval()" << endl;
+  eval(w, ballot_idx, ballots, num_candidates, str_candidates);
 }
