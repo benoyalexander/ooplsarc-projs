@@ -12,9 +12,10 @@
 #include <iostream> // endl, istream, ostream
 #include <sstream>  // istringstream
 #include <string>   // getline, string
-#include <utility>  // make_pair, pair
-#include <algorithm>  // swap
-#include <queue>     // priority_queue
+#include <vector>   // vector
+//#include <utility>  // make_pair, pair
+//#include <algorithm>  // swap
+//#include <queue>     // priority_queue
 
 #include "Solution.h"
 
@@ -26,16 +27,22 @@ bool DEBUG = true;
 bool DEBUG = false;
 #endif
 
-struct State {
-  State(int l, int c) : length(l), cuts(c) {};
-  
-  int length = 0;
-  int cuts = 0;
+class State {
+public:
+  //State(int cycle, int cut) : _cycle_updated(cycle), _cut(cut) {};
+  void cut(int cycle) { _cycle_updated = cycle; }
+  bool was_cut(int cycle) const { return _cycle_updated == cycle; }
+
+private:
+  int _cycle_updated = -1;
+  //  bool _cut = false;
 };
 
+/*
 bool operator<(const State& lhs, const State& rhs) {
   return lhs.cuts < rhs.cuts;
 }
+*/
 
 // ------------
 // eval
@@ -47,9 +54,16 @@ int eval (const int length, int sizes[3]) {
   if (sizes[2] < sizes[0]) swap (sizes[0], sizes[2]);
   if (sizes[2] < sizes[1]) swap (sizes[1], sizes[2]);
 
-  if (sizes[0] > length) sizes[0] = 0;
-  if (sizes[1] > length) sizes[1] = 0;
-  if (sizes[2] > length) sizes[2] = 0;
+  int max_cuts = 3;
+  if (sizes[0] > length) {
+    assert(0);
+  }
+  if (sizes[1] > length) {
+    max_cuts = 1;
+  }
+  if (sizes[2] > length) {
+    max_cuts = 2;
+  }
   
   if (DEBUG) cout << "length=" << length << " (sorted) " << sizes[0] << " " << sizes[1] << " " << sizes[2] << endl;
 
@@ -59,44 +73,51 @@ int eval (const int length, int sizes[3]) {
     return length / sizes[0];
   }
 
-  int max = 0;
-  int start = length;
-  if (sizes[0] < length) start -= sizes[0];
-  if (sizes[1] < length) start -= sizes[1];
-  if (sizes[2] < length) start -= sizes[2];
-  if (start % length == 0) {
-    start /= sizes[0];
-  } else {
-    start = 0;
-  }
-  start = 0;
-  if (DEBUG) cout << "start x at " << start << endl;
+  vector<State> ribbon(8001);
 
-  // n = a * x + b * y + c * z
-  for (int x = start; x <= (length / sizes[0]); ++x) {
-    for (int y = 0; y <= (sizes[1] ? length / sizes[1] : 0); ++y) {
-      int value2 = sizes[0] * x + sizes[1] * y;
-      if (value2 > length) {
-	//if (DEBUG) cout << "too large2 " << x << " " << y << endl;
-	break;
-      }
-      if (value2 && (length - sizes[0] * x) % value2 != 0) break;
-      for (int z = 0; z <= (sizes[2] ? length / sizes[2] : 0); ++z) {
-	int value = sizes[0] * x + sizes[1] * y + sizes[2] * z;
-	if (value > length) {
-	  //if (DEBUG) cout << "too large3 " << x << " " << y << " " << z << endl;
-	  break;
+  // Init
+  ribbon[0].cut(0);
+  int max = -1;
+  bool done = false;
+  
+  int first_updated_pos = 0;
+  for (int cycle = 1; cycle < length && !done; ++cycle) {
+    bool first_updated = false;
+
+    if (DEBUG) cout << "Cycle: " << cycle << " " << endl;
+
+    for (int pos = first_updated_pos; pos < length; ++pos) {
+      if (ribbon[pos].was_cut(cycle - 1)) {
+	// Only check the cuts done last cycle
+	
+	if (!first_updated) {
+	  first_updated = true;
+	  first_updated_pos = pos;
+	  if (DEBUG) cout << "First update for cycle at " << pos << endl;
 	}
-	if (value == length) {
-	  if ((x + y + z) > max) {
-	    max = x + y + z;
-	    if (DEBUG) cout << "Found new max " << max << " with " << x << " " << y << " " << z << endl;
-	  }
+
+	for (int cuts = 0; cuts < max_cuts; ++cuts) {
+	  if (DEBUG) cout << "Cutting at " << pos + sizes[cuts] << endl;
+	  ribbon[pos + sizes[cuts]].cut(cycle);
 	}
       }
     }
-  }
 
+    if (first_updated_pos >= length ||
+	cycle >= length) {
+      done = true;
+    }
+
+    // Check to see if we cut exactly at the ribbon length
+    if (ribbon[length].was_cut(cycle)) {
+      if (DEBUG) cout << "This cycle had a solution..checking for new max..." << endl;
+      if (cycle > max) {
+	if (DEBUG) cout << "Found new max " << cycle << endl;
+	max = cycle;
+      }
+    }
+  }
+  
   return max;
 }
 

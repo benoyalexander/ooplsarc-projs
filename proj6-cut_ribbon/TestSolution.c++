@@ -72,7 +72,7 @@ TEST(Fixture, solve_9) {
   istringstream r("3455 244 3301 3\n");
   ostringstream w;
   solve(r, w);
-  ASSERT_EQ("27\n", w.str());}
+  ASSERT_EQ("991\n", w.str());}
 
 TEST(Fixture, solve_10) {
   istringstream r("29 27 18 2\n");
@@ -85,3 +85,4 @@ TEST(Fixture, solve_11) {
   ostringstream w;
   solve(r, w);
   ASSERT_EQ("11\n", w.str());}
+
