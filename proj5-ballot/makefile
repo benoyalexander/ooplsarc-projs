@@ -17,7 +17,7 @@ clean:
 	rm -f RunSolution.tmp
 	rm -f TestSolution
 	rm -f TestSolution.tmp
-	rm -f Submission.cpp
+	#rm -f Submission.cpp
 
 config:
 	git config -l
