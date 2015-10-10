@@ -20,7 +20,7 @@ using namespace std;
 // eval
 // ------------
 
-int eval (int length, int a, int b, int c);
+int eval (const int length, int sizes[3]);
 
 
 // -------------
