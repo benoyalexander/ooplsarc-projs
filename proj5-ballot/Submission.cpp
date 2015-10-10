@@ -57,6 +57,7 @@ void solve (istream& r, ostream& w);
 #include <string>   // getline, string
 #include <utility>  // make_pair, pair
 #include <limits>   // numeric_limits
+#include <set>      // set
 
 
 
@@ -82,14 +83,13 @@ void eval (ostream& output, int num_ballots, const TypeBallots& ballots, int num
   if (DEBUG) cout << "Min votes to win " << min_to_win << endl;
 
   bool done = false;
-  vector<int> candidate_num_votes(num_candidates);
   TypeVotes votes(num_candidates);  // [vector: Candidate][list: Ballot idx]
+  set<int> eliminated;
 
   // Initialize based on first vote
   if (DEBUG) cout << "Init first vote" << endl;
   for (int ballot_idx = 0; ballot_idx < num_ballots; ++ballot_idx) {
     const int vote_candidate = ballots[ballot_idx][0] - 1;
-    ++candidate_num_votes[vote_candidate];
     votes[vote_candidate].push_back(ballot_idx);
   }
   if (DEBUG) cout << "Done Init first vote" << endl;
@@ -100,10 +100,11 @@ void eval (ostream& output, int num_ballots, const TypeBallots& ballots, int num
     int available_candidates = 0;
 
     for (int x = 0; x < num_candidates; ++x) {
-      const int num_votes = candidate_num_votes[x];
+      const int num_votes = votes[x].size();
 
       if (num_votes == 0) {
 	// Eliminated already
+	eliminated.insert(x);
 	continue;
       } else {
 	++available_candidates;
@@ -153,7 +154,9 @@ void eval (ostream& output, int num_ballots, const TypeBallots& ballots, int num
       const int num_votes = votes[candidate].size();
 
       if (num_votes == lowest_vote_count) {
-	if (DEBUG) cout << "Eliminate " << candidate + 1 << endl;
+	if (DEBUG) cout << "Eliminate " << str_candidates[candidate] << endl;
+	eliminated.insert(candidate);
+	
 	// Look through all the ballots of the losing candidate
 	while (votes[candidate].size()) {
 	  int ballot_idx = votes[candidate].front();
@@ -162,19 +165,19 @@ void eval (ostream& output, int num_ballots, const TypeBallots& ballots, int num
 	  // Look for highest ranked vote who has not been eliminated
 	  for (int vote = 0; vote < num_candidates; ++vote) {
 	    const int new_candidate = ballots[ballot_idx][vote] - 1;
+	    const int votes_new_candidate = votes[new_candidate].size();
 
-	    if (candidate_num_votes[new_candidate] != 0 &&
-		candidate_num_votes[new_candidate] != lowest_vote_count) {
+	    if (eliminated.find(new_candidate) == eliminated.end() &&  // Not already eliminated
+		votes_new_candidate != lowest_vote_count) {      // Make sure not to add votes to
+	                                                         //candidate who is about to be eliminated
 	      if (DEBUG) cout << "Add vote to " << new_candidate + 1 << endl;
 	      votes[new_candidate].push_back(ballot_idx);
-	      ++candidate_num_votes[new_candidate];
 	      break;
 	    }
 	  }
 	}
 
 	--available_candidates;
-	candidate_num_votes[candidate] = 0;
       }
     }
 
@@ -230,7 +233,6 @@ void solve (istream& r, ostream& w) {
       }
     } else if (state == 4) {
       // Ballots
-      if (DEBUG) cout << "got <" << s << ">" << endl;
       if (s == "" || r.eof()) {
 	if (DEBUG) cout << "Calling eval()" << endl;
 	eval(w, ballot_idx, ballots, num_candidates, str_candidates);
