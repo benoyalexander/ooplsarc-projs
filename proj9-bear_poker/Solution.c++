@@ -13,7 +13,6 @@
 #include <sstream>  // istringstream
 #include <string>   // getline, string
 #include <utility>  // make_pair, pair
-#include <vector>
 
 #include "Solution.h"
 
@@ -38,15 +37,9 @@ int eval (int i, int j) {
 // solve
 // -------------
 
-bool mult(int i, int j) {
-  for (int x = 1; x <= 3; ++x) {
-    for (int y = 1; y <= 3; ++y) {
-      if (i * x == j * y) {
-	return true;
-      }
-    }
-  }
-  return false;
+void shrink(int& j) {
+  while (j % 2 == 0) j = j >> 1;
+  while (j % 3 == 0) j = j / 3;
 }
 
 void solve (istream& r, ostream& w) {
@@ -60,29 +53,20 @@ void solve (istream& r, ostream& w) {
     if (DEBUG) cout << "Num players " << players << endl;
   }
 
-  vector<int> bids(players);
   getline(r, s);
   istringstream sin(s);
-  for (int player = 0; player < players; ++player) {
+  int first;
+  sin >> first;
+  shrink(first);
+  
+  for (int player = 0; player < players - 1; ++player) {
     int j;
     sin >> j;
-    bids[player] = j;
-  }
+    shrink(j);
 
-  if (DEBUG) {
-    cout << "Bids";
-    for (int i = 0; i < players; ++i)
-      cout << " " << bids[i];
-    cout << endl;
-  }
-
-  for (int x = 0; x < players - 1; ++x) {
-    for (int y = x+1; y < players; ++y) {
-      if (!mult(bids[x], bids[y])) {
-	if (DEBUG) cout << "TERM: could not find mult for " << bids[x] << " " << bids[y] << endl;
-	w << "No" << endl;
-	return;
-      }
+    if (first != j) {
+      w << "No" << endl;
+      return;
     }
   }
 
